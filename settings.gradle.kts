@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "lazy-static-kotlin"
+
