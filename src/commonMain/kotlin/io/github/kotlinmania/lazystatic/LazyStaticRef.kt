@@ -99,16 +99,6 @@ since Kotlin Multiplatform has no equivalent of cargo features. The default buil
 import io.github.kotlinmania.lazystatic.lazy.Lazy
 
 /**
- * Support trait for enabling a few common operations on lazy static values.
- *
- * This is implemented by each defined lazy static, and used by the free functions in
- * this library.
- */
-public interface LazyStatic {
-    public fun initialize()
-}
-
-/**
  * The runtime counterpart of an upstream `lazy_static! { static ref NAME: T = ... }`
  * declaration: a single value of type [T] computed exactly once on first access.
  *
@@ -141,28 +131,3 @@ public class LazyStaticRef<T : Any> internal constructor(
  * `lazy_static!` macro.
  */
 public fun <T : Any> lazyStatic(builder: () -> T): LazyStaticRef<T> = LazyStaticRef(builder)
-
-/**
- * Take a shared reference to a lazy static and initialize it if it has not been already.
- *
- * This can be used to control the initialization point of a lazy static.
- *
- * Example:
- *
- *     import io.github.kotlinmania.lazystatic.lazyStatic
- *     import io.github.kotlinmania.lazystatic.initialize
- *
- *     val BUFFER: LazyStaticRef<List<UByte>> = lazyStatic { (0u..255u).map { it.toUByte() } }
- *
- *     fun main() {
- *         initialize(BUFFER)
- *
- *         // ...
- *         workWithInitializedData(BUFFER.value)
- *     }
- *
- *     fun workWithInitializedData(data: List<UByte>) {}
- */
-public fun <T : LazyStatic> initialize(lazy: T) {
-    lazy.initialize()
-}
