@@ -10,6 +10,13 @@ package io.github.kotlinmania.lazystatic.lazy
 
 import kotlin.concurrent.atomics.AtomicReference
 
+private sealed class LazyState<out T> {
+    object Uninitialized : LazyState<Nothing>()
+    object Initializing : LazyState<Nothing>()
+    class Initialized<T : Any>(val value: T) : LazyState<T>()
+    class Failed(val failure: Throwable) : LazyState<Nothing>()
+}
+
 /**
  * The standard ("inline") backend used when the `spin_no_std` cargo feature is off.
  *
@@ -19,7 +26,7 @@ import kotlin.concurrent.atomics.AtomicReference
  */
 public class Lazy<T : Any> {
 
-    private val cell: AtomicReference<T?> = AtomicReference(null)
+    private val state: AtomicReference<LazyState<T>> = AtomicReference(LazyState.Uninitialized)
 
     public companion object {
         /**
@@ -36,16 +43,24 @@ public class Lazy<T : Any> {
      * successful initialization every caller observes the same stored object.
      */
     public fun get(f: () -> T): T {
-        cell.load()?.let { return it }
-        val candidate = f()
-        // The Once will catch and propagate panics; here, the first-writer-wins
-        // CAS plays the same role: only one builder result is ever published, and
-        // any builder that loses the race is discarded.
-        return if (cell.compareAndSet(null, candidate)) {
-            candidate
-        } else {
-            // `cell` is guaranteed to be initialized by this point.
-            cell.load()!!
+        while (true) {
+            when (val current = state.load()) {
+                LazyState.Uninitialized -> {
+                    if (state.compareAndSet(current, LazyState.Initializing)) {
+                        try {
+                            val value = f()
+                            state.store(LazyState.Initialized(value))
+                            return value
+                        } catch (failure: Throwable) {
+                            state.store(LazyState.Failed(failure))
+                            throw failure
+                        }
+                    }
+                }
+                LazyState.Initializing -> Unit
+                is LazyState.Initialized -> return current.value
+                is LazyState.Failed -> throw current.failure
+            }
         }
     }
 }

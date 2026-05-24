@@ -1,6 +1,8 @@
 // port-lint: source tests/test.rs
 package io.github.kotlinmania.lazystatic
 
+import io.github.kotlinmania.lazystatic.lazy.Lazy as InlineLazy
+import io.github.kotlinmania.lazystatic.lazycore.Lazy as CoreLazy
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -70,6 +72,61 @@ public class LazyStaticTest {
         assertEquals(6u, NUMBER.value)
         assertEquals(6u, NUMBER.value)
         assertEquals(6u, NUMBER.value)
+    }
+
+    @Test
+    public fun lazyStaticBuilderRunsOnce() {
+        var calls = 0
+        val lazy = lazyStatic {
+            calls += 1
+            mutableListOf("value")
+        }
+
+        val first = lazy.value
+        val second = lazy.value
+        initialize(lazy)
+
+        assertSame(first, second)
+        assertEquals(listOf("value"), second)
+        assertEquals(1, calls)
+    }
+
+    @Test
+    public fun inlineBackendRunsBuilderOnce() {
+        val lazy = InlineLazy.init<MutableList<String>>()
+        var calls = 0
+
+        val first = lazy.get {
+            calls += 1
+            mutableListOf("value")
+        }
+        val second = lazy.get {
+            calls += 1
+            mutableListOf("other")
+        }
+
+        assertSame(first, second)
+        assertEquals(listOf("value"), second)
+        assertEquals(1, calls)
+    }
+
+    @Test
+    public fun coreBackendRunsBuilderOnce() {
+        val lazy = CoreLazy.init<MutableList<String>>()
+        var calls = 0
+
+        val first = lazy.get {
+            calls += 1
+            mutableListOf("value")
+        }
+        val second = lazy.get {
+            calls += 1
+            mutableListOf("other")
+        }
+
+        assertSame(first, second)
+        assertEquals(listOf("value"), second)
+        assertEquals(1, calls)
     }
 
     @Test
