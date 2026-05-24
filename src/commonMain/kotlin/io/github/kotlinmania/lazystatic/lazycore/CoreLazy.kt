@@ -10,6 +10,13 @@ package io.github.kotlinmania.lazystatic.lazycore
 
 import kotlin.concurrent.atomics.AtomicReference
 
+private sealed class LazyState<out T> {
+    object Uninitialized : LazyState<Nothing>()
+    object Initializing : LazyState<Nothing>()
+    class Initialized<T : Any>(val value: T) : LazyState<T>()
+    class Failed(val failure: Throwable) : LazyState<Nothing>()
+}
+
 /**
  * The `spin_no_std` backend.
  *
@@ -20,7 +27,7 @@ import kotlin.concurrent.atomics.AtomicReference
  */
 public class Lazy<T : Any> {
 
-    private val once: AtomicReference<T?> = AtomicReference(null)
+    private val state: AtomicReference<LazyState<T>> = AtomicReference(LazyState.Uninitialized)
 
     public companion object {
         /**
@@ -33,12 +40,24 @@ public class Lazy<T : Any> {
      * Return the cached value, running [builder] exactly once on first access.
      */
     public fun get(builder: () -> T): T {
-        once.load()?.let { return it }
-        val candidate = builder()
-        return if (once.compareAndSet(null, candidate)) {
-            candidate
-        } else {
-            once.load()!!
+        while (true) {
+            when (val current = state.load()) {
+                LazyState.Uninitialized -> {
+                    if (state.compareAndSet(current, LazyState.Initializing)) {
+                        try {
+                            val value = builder()
+                            state.store(LazyState.Initialized(value))
+                            return value
+                        } catch (failure: Throwable) {
+                            state.store(LazyState.Failed(failure))
+                            throw failure
+                        }
+                    }
+                }
+                LazyState.Initializing -> Unit
+                is LazyState.Initialized -> return current.value
+                is LazyState.Failed -> throw current.failure
+            }
         }
     }
 }
