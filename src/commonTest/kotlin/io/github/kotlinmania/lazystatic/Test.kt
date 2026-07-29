@@ -1,8 +1,6 @@
 // port-lint: source tests/test.rs
 package io.github.kotlinmania.lazystatic
 
-import io.github.kotlinmania.lazystatic.lazy.Lazy as InlineLazy
-import io.github.kotlinmania.lazystatic.lazycore.Lazy as CoreLazy
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,6 +9,8 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import io.github.kotlinmania.lazystatic.lazy.Lazy as InlineLazy
+import io.github.kotlinmania.lazystatic.lazycore.Lazy as CoreLazy
 
 // Documentation!
 public val NUMBER: LazyStaticRef<UInt> = lazyStatic { timesTwo(3u) }
@@ -24,20 +24,22 @@ private val ARRAY_BOXES: LazyStaticRef<List<UInt>> =
 // expectation is just that repeated reads return the same cached instance.
 public val STRING: LazyStaticRef<String> = lazyStatic { "hello" }
 
-private val HASHMAP: LazyStaticRef<Map<UInt, String>> = lazyStatic {
-    val m = mutableMapOf<UInt, String>()
-    m[0u] = "abc"
-    m[1u] = "def"
-    m[2u] = "ghi"
-    m
-}
+private val HASHMAP: LazyStaticRef<Map<UInt, String>> =
+    lazyStatic {
+        val m = mutableMapOf<UInt, String>()
+        m[0u] = "abc"
+        m[1u] = "def"
+        m[2u] = "ghi"
+        m
+    }
 
 // This should not compile if the unsafe is removed.
 // Upstream `std::mem::transmute::<i32, u32>(-1)` reinterprets the all-ones bit pattern
 // of -1i32 as the maximum u32 value.
-private val UNSAFE: LazyStaticRef<UInt> = lazyStatic {
-    (-1).toUInt()
-}
+private val UNSAFE: LazyStaticRef<UInt> =
+    lazyStatic {
+        (-1).toUInt()
+    }
 
 private val S1: LazyStaticRef<String> = lazyStatic { "a" }
 private val S2: LazyStaticRef<String> = lazyStatic { "b" }
@@ -51,7 +53,6 @@ public val string: LazyStaticRef<String> = lazyStatic { "hello" }
 private fun timesTwo(n: UInt): UInt = n * 2u
 
 public class LazyStaticTest {
-
     @Test
     public fun s3() {
         assertEquals("ab", S3.value)
@@ -77,10 +78,11 @@ public class LazyStaticTest {
     @Test
     public fun lazyStaticBuilderRunsOnce() {
         var calls = 0
-        val lazy = lazyStatic {
-            calls += 1
-            mutableListOf("value")
-        }
+        val lazy =
+            lazyStatic {
+                calls += 1
+                mutableListOf("value")
+            }
 
         val first = lazy.value
         val second = lazy.value
@@ -96,14 +98,16 @@ public class LazyStaticTest {
         val lazy = InlineLazy.init<MutableList<String>>()
         var calls = 0
 
-        val first = lazy.get {
-            calls += 1
-            mutableListOf("value")
-        }
-        val second = lazy.get {
-            calls += 1
-            mutableListOf("other")
-        }
+        val first =
+            lazy.get {
+                calls += 1
+                mutableListOf("value")
+            }
+        val second =
+            lazy.get {
+                calls += 1
+                mutableListOf("other")
+            }
 
         assertSame(first, second)
         assertEquals(listOf("value"), second)
@@ -115,14 +119,16 @@ public class LazyStaticTest {
         val lazy = CoreLazy.init<MutableList<String>>()
         var calls = 0
 
-        val first = lazy.get {
-            calls += 1
-            mutableListOf("value")
-        }
-        val second = lazy.get {
-            calls += 1
-            mutableListOf("other")
-        }
+        val first =
+            lazy.get {
+                calls += 1
+                mutableListOf("value")
+            }
+        val second =
+            lazy.get {
+                calls += 1
+                mutableListOf("other")
+            }
 
         assertSame(first, second)
         assertEquals(listOf("value"), second)
@@ -192,39 +198,55 @@ public val VAR: LazyStaticRef<Int> = lazyStatic { 0 }
 private object X {
     override fun toString(): String = "X"
 }
-private class Once(val x: X)
+
+private class Once(
+    val x: X,
+)
+
 private val ONCE_INIT: Once = Once(X)
 private val DATA: X = X
 private val ONCE: X = X
+
 private fun requireSync(): X = X
+
 private fun transmute(): X = X
+
 private fun staticRefInitialize(): X = X
+
 private fun test(items: List<X>): X {
     assertTrue(items.isNotEmpty())
     return X
 }
 
 // All these names should not be shadowed.
-private val ITEM_NAME_TEST: LazyStaticRef<X> = lazyStatic {
-    test(
-        listOf(
-            X, Once(X).x, ONCE_INIT.x, DATA, ONCE,
-            requireSync(), transmute(),
-            // Except this, which would sadly be shadowed by internals upstream;
-            // Kotlin closures do not capture local helper names so the call would be
-            // valid here, but the upstream comment is preserved as content:
-            // staticRefInitialize()
-        ),
-    )
-}
+private val ITEM_NAME_TEST: LazyStaticRef<X> =
+    lazyStatic {
+        test(
+            listOf(
+                X,
+                Once(X).x,
+                ONCE_INIT.x,
+                DATA,
+                ONCE,
+                requireSync(),
+                transmute(),
+                // Except this, which would sadly be shadowed by internals upstream;
+                // Kotlin closures do not capture local helper names so the call would be
+                // valid here, but the upstream comment is preserved as content:
+                // staticRefInitialize()
+            ),
+        )
+    }
 
 private val PRE_INIT_FLAG: AtomicBoolean = AtomicBoolean(false)
 
-private val PRE_INIT: LazyStaticRef<Unit> = lazyStatic {
-    PRE_INIT_FLAG.store(true)
-}
+private val PRE_INIT: LazyStaticRef<Unit> =
+    lazyStatic {
+        PRE_INIT_FLAG.store(true)
+    }
 
-private val LIFETIME_NAME: LazyStaticRef<(UByte) -> Unit> = lazyStatic {
-    val f: (UByte) -> Unit = { _ -> }
-    f
-}
+private val LIFETIME_NAME: LazyStaticRef<(UByte) -> Unit> =
+    lazyStatic {
+        val f: (UByte) -> Unit = { _ -> }
+        f
+    }

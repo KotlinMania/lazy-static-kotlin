@@ -103,7 +103,6 @@ import io.github.kotlinmania.lazystatic.lazy.Lazy
 public class LazyStaticRef<T : Any> internal constructor(
     private val initializer: () -> T,
 ) : LazyStatic {
-
     private val cell: Lazy<T> = Lazy.init()
 
     /**
