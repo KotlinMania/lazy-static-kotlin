@@ -1,4 +1,4 @@
-// port-lint: source src/lib.rs
+// port-lint: source lib.rs
 package io.github.kotlinmania.lazystatic
 
 // Copyright 2016 lazy-static.rs Developers
@@ -27,7 +27,7 @@ package io.github.kotlinmania.lazystatic
  *         workWithInitializedData(BUFFER.value)
  *     }
  *
- *     fun workWithInitializedData(data: List<UByte>) {}
+ *     fun workWithInitializedData(data: List<UByte>) { data }
  */
 public fun <T : LazyStatic> initialize(lazy: T) {
     lazy.initialize()

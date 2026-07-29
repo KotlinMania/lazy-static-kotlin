@@ -1,4 +1,4 @@
-// port-lint: source src/lib.rs
+// port-lint: source lib.rs
 package io.github.kotlinmania.lazystatic
 
 // Copyright 2016 lazy-static.rs Developers

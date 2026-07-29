@@ -1,4 +1,4 @@
-// port-lint: source src/core_lazy.rs
+// port-lint: source core_lazy.rs
 package io.github.kotlinmania.lazystatic.lazycore
 
 // Copyright 2016 lazy-static.rs Developers
@@ -18,9 +18,9 @@ private sealed class LazyState<out T> {
 }
 
 /**
- * The `spin_no_std` backend.
+ * The no-standard-library backend.
  *
- * In Rust this is selected via cargo's `spin_no_std` feature and is implemented on top
+ * In Rust this is selected via the no-std cargo feature and is implemented on top
  * of the `spin` crate's `Once<T>`. Kotlin Multiplatform has no analogue of std vs no-std,
  * so the two backends are translated as a parallel pair: pick whichever package matches
  * the upstream feature you wanted to mirror.
@@ -62,7 +62,7 @@ public class Lazy<T : Any> {
     }
 }
 
-// Kotlin equivalent of the `__lazy_static_create!` macro:
+// Kotlin equivalent of the upstream create macro:
 //
 //     static $NAME: lazy::Lazy<$T> = lazy::Lazy::INIT;
 //

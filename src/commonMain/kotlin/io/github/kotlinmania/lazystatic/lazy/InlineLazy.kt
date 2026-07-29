@@ -1,4 +1,4 @@
-// port-lint: source src/inline_lazy.rs
+// port-lint: source inline_lazy.rs
 package io.github.kotlinmania.lazystatic.lazy
 
 // Copyright 2016 lazy-static.rs Developers
@@ -18,7 +18,7 @@ private sealed class LazyState<out T> {
 }
 
 /**
- * The standard ("inline") backend used when the `spin_no_std` cargo feature is off.
+ * The standard ("inline") backend used when the no-std cargo feature is off.
  *
  * Holds a single value of type [T] together with a once-guard. The first call to [get]
  * runs the supplied builder and caches the result; every subsequent call returns the
@@ -65,7 +65,7 @@ public class Lazy<T : Any> {
     }
 }
 
-// Kotlin equivalent of the `__lazy_static_create!` macro:
+// Kotlin equivalent of the upstream create macro:
 //
 //     static $NAME: lazy::Lazy<$T> = lazy::Lazy::INIT;
 //
