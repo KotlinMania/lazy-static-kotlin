@@ -1,4 +1,4 @@
-// port-lint: source src/lib.rs
+// port-lint: source lib.rs
 package io.github.kotlinmania.lazystatic
 
 // Copyright 2016 lazy-static.rs Developers
@@ -18,14 +18,9 @@ be computed.
 
 # Syntax
 
-Upstream Rust exposes a `lazy_static!` macro:
-
-    lazy_static! {
-        [pub] static ref NAME_1: TYPE_1 = EXPR_1;
-        [pub] static ref NAME_2: TYPE_2 = EXPR_2;
-        ...
-        [pub] static ref NAME_N: TYPE_N = EXPR_N;
-    }
+Upstream Rust exposes a declarative macro that accepts a sequence of
+visibility-annotated static reference declarations, each binding a name to
+a type and an initializer expression.
 
 Macros do not exist in Kotlin. The runtime equivalent is the [lazyStatic] builder, which
 returns a [LazyStaticRef] holding the lazily computed value. Doc-comment attributes that
@@ -87,8 +82,8 @@ check on each access.
 
 This crate provides one cargo feature:
 
-- `spin_no_std`: This allows using this crate in a no-std environment, by depending on
-  the standalone `spin` crate.
+- The no-standard-library feature: This allows using this crate in a no-std
+  environment, by depending on the standalone `spin` crate.
 
 In the Kotlin port, both backends are translated as parallel sub-packages
 ([io.github.kotlinmania.lazystatic.lazy] and [io.github.kotlinmania.lazystatic.lazycore])
@@ -99,8 +94,8 @@ since Kotlin Multiplatform has no equivalent of cargo features. The default buil
 import io.github.kotlinmania.lazystatic.lazy.Lazy
 
 /**
- * The runtime counterpart of an upstream `lazy_static! { static ref NAME: T = ... }`
- * declaration: a single value of type [T] computed exactly once on first access.
+ * The runtime counterpart of an upstream lazy static declaration: a single value of
+ * type [T] computed exactly once on first access.
  *
  * Read the value through [value], or invoke [initialize] to force the computation
  * without otherwise observing the result.
@@ -118,7 +113,7 @@ public class LazyStaticRef<T : Any> internal constructor(
     public val value: T get() = cell.get(initializer)
 
     override fun initialize() {
-        // Equivalent to upstream's `let _ = &**lazy;` — a single dereference forces
+        // Equivalent to upstream's dereference-and-discard: a single read forces
         // initialization and discards the result.
         cell.get(initializer)
     }
@@ -128,6 +123,6 @@ public class LazyStaticRef<T : Any> internal constructor(
  * Build a [LazyStaticRef] that defers [builder] until the first read of [LazyStaticRef.value].
  *
  * This is the runtime API the Kotlin port exposes in place of the upstream Rust
- * `lazy_static!` macro.
+ * declarative macro.
  */
 public fun <T : Any> lazyStatic(builder: () -> T): LazyStaticRef<T> = LazyStaticRef(builder)
