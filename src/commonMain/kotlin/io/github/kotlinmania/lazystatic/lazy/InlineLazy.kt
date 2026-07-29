@@ -12,9 +12,16 @@ import kotlin.concurrent.atomics.AtomicReference
 
 private sealed class LazyState<out T> {
     object Uninitialized : LazyState<Nothing>()
+
     object Initializing : LazyState<Nothing>()
-    class Initialized<T : Any>(val value: T) : LazyState<T>()
-    class Failed(val failure: Throwable) : LazyState<Nothing>()
+
+    class Initialized<T : Any>(
+        val value: T,
+    ) : LazyState<T>()
+
+    class Failed(
+        val failure: Throwable,
+    ) : LazyState<Nothing>()
 }
 
 /**
@@ -25,7 +32,6 @@ private sealed class LazyState<out T> {
  * same cached reference without ever invoking the builder again.
  */
 public class Lazy<T : Any> {
-
     private val state: AtomicReference<LazyState<T>> = AtomicReference(LazyState.Uninitialized)
 
     public companion object {

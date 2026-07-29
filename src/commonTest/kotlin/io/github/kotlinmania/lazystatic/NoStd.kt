@@ -25,7 +25,6 @@ private object NoStdStatics {
 }
 
 public class NoStdTest {
-
     @Test
     public fun testBasic() {
         assertEquals(6u, NoStdStatics.NUMBER.get { NoStdStatics.timesTwo(3u) })
