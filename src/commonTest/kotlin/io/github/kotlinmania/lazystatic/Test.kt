@@ -1,4 +1,4 @@
-// port-lint: source tests/test.rs
+// port-lint: tests tests/test.rs
 package io.github.kotlinmania.lazystatic
 
 import kotlin.concurrent.atomics.AtomicBoolean
