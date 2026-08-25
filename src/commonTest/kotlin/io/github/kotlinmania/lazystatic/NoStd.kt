@@ -1,4 +1,4 @@
-// port-lint: source tests/no_std.rs
+// port-lint: tests tests/no_std.rs
 package io.github.kotlinmania.lazystatic
 
 import io.github.kotlinmania.lazystatic.lazycore.Lazy
