@@ -60,9 +60,18 @@ public class Lazy<T : Any> {
                         }
                     }
                 }
-                LazyState.Initializing -> Unit
-                is LazyState.Initialized -> return current.value
-                is LazyState.Failed -> throw current.failure
+
+                LazyState.Initializing -> {
+                    continue
+                }
+
+                is LazyState.Initialized -> {
+                    return current.value
+                }
+
+                is LazyState.Failed -> {
+                    throw current.failure
+                }
             }
         }
     }

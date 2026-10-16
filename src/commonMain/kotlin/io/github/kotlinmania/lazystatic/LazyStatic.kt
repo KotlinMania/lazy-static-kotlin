@@ -160,4 +160,3 @@ public class LazyStaticRef<T : Any> internal constructor(
  * declarative macro.
  */
 public fun <T : Any> lazyStatic(builder: () -> T): LazyStaticRef<T> = LazyStaticRef(builder)
-
